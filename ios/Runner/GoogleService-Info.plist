@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>469675949347-f0tp4im6lfthjme78184il1h99otpq0o.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.469675949347-f0tp4im6lfthjme78184il1h99otpq0o</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>469675949347-j03ce8is6msbgc08foh4fccd1iuenqop.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBiPqgCbT5cENmhST8xu4tZusEfOpcUleo</string>
+	<key>GCM_SENDER_ID</key>
+	<string>469675949347</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.spontane</string>
+	<key>PROJECT_ID</key>
+	<string>spontane-gog47y</string>
+	<key>STORAGE_BUCKET</key>
+	<string>spontane-gog47y.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:469675949347:ios:ec6f73a33c508dd909a096</string>
+</dict>
+</plist>
