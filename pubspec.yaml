@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  permission_handler: ^10.0.0  # Use the latest version
   google_maps_flutter: ^2.5.3
   cupertino_icons: ^1.0.2
   google_places_flutter: ^2.0.6
@@ -37,6 +38,7 @@ dependencies:
   firebase_auth: ^4.15.3
   cloud_firestore: ^4.13.6
   firebase_storage: ^11.5.6
+  geolocator: ^10.1.0
 
 
 dev_dependencies:
@@ -85,3 +87,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  # Add assets
+  assets:
+    - assets/images/markers/art_marker.png
+    - assets/images/markers/party_marker.png
+    - assets/images/markers/performance_marker.png
+    - assets/images/markers/sale_marker.png
+    - assets/images/markers/specialoffer_marker.png
+    - assets/images/markers/sports_marker.png
+
+  # Add custom fonts if needed
