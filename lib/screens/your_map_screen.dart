@@ -12,6 +12,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/gestures.dart' as gestures;
 import 'package:geolocator/geolocator.dart';
+import 'package:spontane/screens/add_event_screen.dart';
+import 'package:flutter/services.dart';
+import 'dart:ui' as ui;
+import 'dart:typed_data';
 
 import 'map/components/map_filters.dart';
 
@@ -138,23 +142,20 @@ class _MapScreenState extends State<MapScreen> {
 
   // Update the _loadMarkerIcons method
   Future<void> _loadMarkerIcons() async {
-    if (_iconsLoaded) return; // Skip if already loaded
+    if (_iconsLoaded) return;
     
     try {
       final markerTypes = ['sale', 'performance', 'party', 'art', 'sports', 'specialoffer'];
       
       for (var type in markerTypes) {
         try {
-          print('Attempting to load marker icon for: $type');
           final String assetPath = 'assets/images/markers/${type}_marker.png';
-          print('Asset path: $assetPath');
           
-          final icon = await BitmapDescriptor.fromAssetImage(
-            const ImageConfiguration(size: Size(128, 128)),
-            assetPath,
-          );
+          // Create custom sized marker icon
+          final Uint8List markerIcon = await getBytesFromAsset(assetPath, 120);  // Increased size to 180
+          final icon = BitmapDescriptor.fromBytes(markerIcon);
+          
           _markerIcons[type] = icon;
-          print('Successfully loaded marker icon for: $type');
         } catch (e) {
           print('Error loading marker icon for $type: $e');
         }
@@ -165,12 +166,24 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Future<Uint8List> getBytesFromAsset(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(
+      data.buffer.asUint8List(),
+      targetWidth: width
+    );
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!
+        .buffer
+        .asUint8List();
+  }
+
   // Update _getMarkerIcon method
   BitmapDescriptor _getMarkerIcon(String eventType) {
     String normalizedType = eventType.toLowerCase().trim();
-    
+
     // Handle similar types
-    if (normalizedType.contains('culinary') || 
+    if (normalizedType.contains('culinary') ||
         normalizedType.contains('food') || 
         normalizedType.contains('social')) {
       normalizedType = 'party';
@@ -228,17 +241,23 @@ class _MapScreenState extends State<MapScreen> {
         
         if (location is GeoPoint) {
           final icon = _getMarkerIcon(eventType);
-          print('Creating marker for ${doc.id} with type $eventType');
           
           newMarkers.add(
             Marker(
               markerId: MarkerId(doc.id),
               position: LatLng(location.latitude, location.longitude),
               icon: icon,
+              // Add these properties to make marker bigger
+              anchor: Offset(0.5, 0.5),
+              flat: true,
+              zIndex: 2,
               infoWindow: InfoWindow(
                 title: data['title'] ?? 'No Title',
                 snippet: data['description'] ?? 'No Description',
               ),
+              onTap: () {
+                _showEventDetails(data);
+              },
             ),
           );
         }
@@ -247,7 +266,6 @@ class _MapScreenState extends State<MapScreen> {
       setState(() {
         _markers.clear();
         _markers.addAll(newMarkers);
-        print('Updated markers on map: ${_markers.length}');
       });
     } catch (e) {
       print('Error loading markers: $e');
@@ -262,6 +280,12 @@ class _MapScreenState extends State<MapScreen> {
     // Handle the selected place here
     print(prediction.description);
     // You can use prediction.placeId to get more details about the place
+  }
+
+  void _showEventDetails(Map<String, dynamic> data) {
+    // Find the EventsBottomSheet widget and call its method
+    final bottomSheet = context.findAncestorWidgetOfExactType<EventsBottomSheet>();
+    bottomSheet?.showEventDetails(data);
   }
 
   @override
@@ -288,43 +312,23 @@ class _MapScreenState extends State<MapScreen> {
             mapToolbarEnabled: true,
           ),
           Positioned(
-            top: 40,
             left: 0,
+            top: 40,
             right: 0,
-            child: Column(
-              children: [
-                // Filter buttons row
-                const SizedBox(height: 10),
-                // Existing search bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      // Menu Button
-                      Container(
-                        margin: EdgeInsets.only(right: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.3),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          icon: Icon(Icons.menu),
-                          onPressed: () {
-                            _scaffoldKey.currentState?.openDrawer();
-                          },
-                        ),
-                      ),
-                      // Search Bar
-                      Expanded(
-                        child: Container(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  // Filter buttons row
+                  const SizedBox(height: 10),
+                  // Existing search bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        // Menu Button
+                        Container(
+                          margin: EdgeInsets.only(right: 10),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
@@ -337,58 +341,87 @@ class _MapScreenState extends State<MapScreen> {
                               ),
                             ],
                           ),
-                          child: GooglePlaceAutoCompleteTextField(
-                            textEditingController: TextEditingController(),
-                            googleAPIKey: "AIzaSyCRa3fwxFQRctwLAh_784aAin9hE5SaIik",
-                            inputDecoration: InputDecoration(
-                              hintText: "Search location",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                            ),
-                            debounceTime: 800,
-                            countries: ["il"],
-                            isLatLngRequired: true,
-                            getPlaceDetailWithLatLng: (Prediction prediction) {
-                              // Handle the selected place with lat/lng
-                              print("Location: ${prediction.lat}, ${prediction.lng}");
-
-                              // Move camera to selected location
-                              mapController?.animateCamera(
-                                CameraUpdate.newLatLng(
-                                  LatLng(
-                                    double.parse(prediction.lat ?? "0"),
-                                    double.parse(prediction.lng ?? "0"),
-                                  ),
-                                ),
-                              );
-                            },
-                            itemClick: (Prediction prediction) {
-                              _handleSearchSelection(prediction);
+                          child: IconButton(
+                            icon: Icon(Icons.menu),
+                            onPressed: () {
+                              _scaffoldKey.currentState?.openDrawer();
                             },
                           ),
                         ),
-                      ),
-                    ],
+                        // Search Bar
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.3),
+                                  spreadRadius: 2,
+                                  blurRadius: 5,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: GooglePlaceAutoCompleteTextField(
+                              textEditingController: TextEditingController(),
+                              googleAPIKey: "AIzaSyCRa3fwxFQRctwLAh_784aAin9hE5SaIik",
+                              inputDecoration: InputDecoration(
+                                hintText: "Search locastion",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                              ),
+                              debounceTime: 800,
+                              countries: ["il"],
+                              isLatLngRequired: true,
+                              getPlaceDetailWithLatLng: (Prediction prediction) {
+                                // Handle the selected place with lat/lng
+                                print("Location: ${prediction.lat}, ${prediction.lng}");
+
+                                // Move camera to selected location
+                                mapController?.animateCamera(
+                                  CameraUpdate.newLatLng(
+                                    LatLng(
+                                      double.parse(prediction.lat ?? "0"),
+                                      double.parse(prediction.lng ?? "0"),
+                                    ),
+                                  ),
+                                );
+                              },
+                              itemClick: (Prediction prediction) {
+                                _handleSearchSelection(prediction);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: MapFilters(),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: MapFilters(),
+                  ),
+
+                ],
+              ),
             ),
           ),
           // Bottom sheet first (lower z-index)
-          EventsBottomSheet(controller: _sheetController),
+          EventsBottomSheet(
+            controller: _sheetController,
+            mapController: mapController,
+            markers: _markers,
+          ),
           
           // Location button above the sheet (higher z-index)
           Positioned(
             right: 16,
             bottom: MediaQuery.of(context).size.height * 0.25,
             child: FloatingActionButton(
+              heroTag: "location_fab",
               backgroundColor: Colors.white,
               elevation: 4,
               child: Icon(Icons.my_location, color: Colors.blue),
@@ -396,6 +429,28 @@ class _MapScreenState extends State<MapScreen> {
                 borderRadius: BorderRadius.circular(15),
               ),
               onPressed: _getCurrentLocation,
+            ),
+          ),
+          
+          // Add Event button (mirrored on left)
+          Positioned(
+            left: 16,
+            bottom: MediaQuery.of(context).size.height * 0.25,
+            child: FloatingActionButton(
+              heroTag: "add_event_fab",
+              backgroundColor: Colors.white,
+              elevation: 4,
+              child: Icon(Icons.add_location, color: Colors.blue),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => AddEventScreen(),
+                  ),
+                );
+              },
             ),
           ),
           

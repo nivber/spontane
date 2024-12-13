@@ -32,6 +32,7 @@ android {
         versionCode flutter.versionCode
         versionName flutter.versionName
         multiDexEnabled true
+        resValue "string", "server_client_id", "1051394829595-qqvj1574a8hk0r7u4ffv8qj4auivt8gl.apps.googleusercontent.com"
     }
 
     buildTypes {
