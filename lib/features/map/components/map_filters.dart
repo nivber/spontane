@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/filters/distance_filter.dart';
+import '../../../shared/widgets/filters/time_filter.dart';
+import '../../../shared/widgets/filters/recurrence_filter.dart';
+import '../../../shared/widgets/filters/type_filter.dart';
 
 class MapFilters extends StatelessWidget {
   const MapFilters({Key? key}) : super(key: key);

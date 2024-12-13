@@ -28,22 +28,45 @@ class AuthService {
 
   // Sign out
   Future<void> signOut() async {
-    await _auth.signOut();
+    try {
+      // Sign out from Google
+      await _googleSignIn.signOut();
+      // Sign out from Firebase
+      await _auth.signOut();
+      print('Successfully signed out');
+    } catch (e) {
+      print('Error signing out: $e');
+      rethrow;
+    }
   }
 
   // Google Sign In
   Future<UserCredential?> signInWithGoogle() async {
     try {
+      // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
 
+      // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
+
+      // Create a new credential
+      final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      return await _auth.signInWithCredential(credential);
+      // Sign in to Firebase with the credential
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+
+      // Update user profile if name or photo is missing
+      if (userCredential.user != null && 
+          (userCredential.user!.displayName == null || userCredential.user!.photoURL == null)) {
+        await userCredential.user!.updateDisplayName(googleUser.displayName);
+        await userCredential.user!.updatePhotoURL(googleUser.photoUrl);
+      }
+
+      return userCredential;
     } catch (e) {
       print('Error signing in with Google: $e');
       rethrow;

@@ -1,12 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:spontane/screens/your_map_screen.dart';
+import 'package:spontane/features/map/screens/map_screen.dart';
+import 'features/events/screens/add_event_screen.dart';
 import 'firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:spontane/screens/add_event_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:spontane/screens/auth/login_screen.dart';
-import 'package:spontane/screens/auth/register_screen.dart';
+import 'package:spontane/features/auth/screens/login_screen.dart';
+import 'package:spontane/features/auth/screens/register_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

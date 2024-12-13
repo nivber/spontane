@@ -3,21 +3,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:google_places_flutter/model/prediction.dart';
 import '../widgets/events_bottom_sheet.dart';
-import '../widgets/side_menu.dart';
-import '../widgets/filters/distance_filter.dart';
-import '../widgets/filters/time_filter.dart';
-import '../widgets/filters/recurrence_filter.dart';
-import '../widgets/filters/type_filter.dart';
+import '../../../shared/widgets/side_menu.dart';
+import '../components/map_filters.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/gestures.dart' as gestures;
 import 'package:geolocator/geolocator.dart';
-import 'package:spontane/screens/add_event_screen.dart';
+import '../../events/screens/add_event_screen.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
-
-import 'map/components/map_filters.dart';
 
 
 class MapScreen extends StatefulWidget {
